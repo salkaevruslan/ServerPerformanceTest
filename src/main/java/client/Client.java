@@ -1,14 +1,20 @@
 package client;
 
+import data.DataArray;
 import util.DataGenerator;
+import util.StreamUtils;
 import util.Timer;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Client implements Runnable {
@@ -17,9 +23,11 @@ public class Client implements Runnable {
     private final CountDownLatch startLatch;
     private final CountDownLatch stopLatch;
     private final AtomicBoolean isCounting;
-    private SocketChannel channel;
     private final int iterations;
     private final int dataSize;
+    private final ArrayList<Integer> values;
+    private DataInputStream input;
+    private DataOutputStream output;
 
 
     public Client(CountDownLatch startLatch,
@@ -35,6 +43,7 @@ public class Client implements Runnable {
         this.iterations = iterations;
         this.dataSize = dataSize;
         results = forResults;
+        values = DataGenerator.gen(dataSize);
     }
 
     @Override
@@ -45,13 +54,12 @@ public class Client implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        try {
-            channel = SocketChannel.open();
-            channel.connect(new InetSocketAddress("localhost", 228));
+        try (Socket socket = new Socket("localhost", 228)) {
+            input = new DataInputStream(socket.getInputStream());
+            output = new DataOutputStream(socket.getOutputStream());
             Thread senderThread = new Thread(new DataSender());
             senderThread.start();
-            getResponse();
-            channel.close();
+            readResponse();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -59,41 +67,28 @@ public class Client implements Runnable {
         stopLatch.countDown();
     }
 
-    private void getResponse() throws IOException {
+    private void readResponse() throws IOException {
         for (int i = 0; i < iterations; i++) {
-            ByteBuffer arrSizeBuf = ByteBuffer.allocate(4);
-            channel.read(arrSizeBuf);
-            arrSizeBuf.flip();
-            //TODO assertion?
-            ByteBuffer dataBuf = ByteBuffer.allocate(4 * arrSizeBuf.getInt());
-            while (dataBuf.hasRemaining()) {
-                channel.read(dataBuf);
-            }
+            int id = StreamUtils.readData(input).getId();
+            //TODO check data
             if (isCounting.get()) {
-                results.add(timers.get(i).time());
+                results.add(timers.get(id).time());
             }
             //TODO do smth else?
         }
     }
 
-    private class DataSender implements Runnable {
 
+    private class DataSender implements Runnable {
         @Override
         public void run() {
+            int[] valuesAsArray = values.stream().mapToInt(x -> x).toArray();
             for (int i = 0; i < iterations; i++) {
-                ArrayList<Integer> data = DataGenerator.gen(dataSize);
                 Timer timer = new Timer();
                 timers.add(timer);
                 timer.start();
-                ByteBuffer arrSizeBuf = ByteBuffer.allocate(4);
-                arrSizeBuf.asIntBuffer().put(dataSize);
-                ByteBuffer dataBuf = ByteBuffer.allocate(4 * data.size());
-                dataBuf.asIntBuffer().put(data.stream().mapToInt(x -> x).toArray());
-                arrSizeBuf.flip();
-                dataBuf.flip();
-                ByteBuffer[] bufferArray = {arrSizeBuf, dataBuf};
                 try {
-                    channel.write(bufferArray);
+                    StreamUtils.writeData(output, new DataArray(i, valuesAsArray));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
