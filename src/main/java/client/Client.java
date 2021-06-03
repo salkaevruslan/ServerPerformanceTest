@@ -1,25 +1,20 @@
 package client;
 
 import data.DataArray;
+import results.Results;
 import util.DataGenerator;
 import util.StreamUtils;
 import util.Timer;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Client implements Runnable {
     private final ArrayList<Timer> timers = new ArrayList<>();
-    private final ArrayList<Long> results;
+    private final Results results;
     private final CountDownLatch startLatch;
     private final CountDownLatch stopLatch;
     private final AtomicBoolean isCounting;
@@ -35,14 +30,14 @@ public class Client implements Runnable {
                   AtomicBoolean isCounting,
                   int iterations,
                   int dataSize,
-                  ArrayList<Long> forResults
+                  Results results
     ) {
         this.startLatch = startLatch;
         this.stopLatch = stopLatch;
         this.isCounting = isCounting;
         this.iterations = iterations;
         this.dataSize = dataSize;
-        results = forResults;
+        this.results = results;
         values = DataGenerator.gen(dataSize);
     }
 
@@ -72,7 +67,7 @@ public class Client implements Runnable {
             int id = StreamUtils.readData(input).getId();
             //TODO check data
             if (isCounting.get()) {
-                results.add(timers.get(id).time());
+                results.addResult(timers.get(id).time());
             }
             //TODO do smth else?
         }
