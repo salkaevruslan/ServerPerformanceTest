@@ -9,46 +9,47 @@ import util.Timer;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Client implements Runnable {
+public class Client implements Callable<Void> {
     private final ArrayList<Timer> timers = new ArrayList<>();
     private final Results results;
     private final CountDownLatch startLatch;
-    private final CountDownLatch stopLatch;
     private final AtomicBoolean isCounting;
     private final int iterations;
-    private final int dataSize;
     private final ArrayList<Integer> values;
     private DataInputStream input;
     private DataOutputStream output;
+    public int id;
 
 
     public Client(CountDownLatch startLatch,
-                  CountDownLatch stopLatch,
                   AtomicBoolean isCounting,
                   int iterations,
                   int dataSize,
-                  Results results
+                  Results results,
+                  int id
     ) {
         this.startLatch = startLatch;
-        this.stopLatch = stopLatch;
         this.isCounting = isCounting;
         this.iterations = iterations;
-        this.dataSize = dataSize;
         this.results = results;
         values = DataGenerator.gen(dataSize);
+        this.id = id;
     }
 
     @Override
-    public void run() {
+    public Void call() {
         startLatch.countDown();
+        System.out.println("Client " + id + "countdown" + startLatch.getCount());
         try {
             startLatch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println("Client " + id + "start");
         try (Socket socket = new Socket("localhost", 228)) {
             input = new DataInputStream(socket.getInputStream());
             output = new DataOutputStream(socket.getOutputStream());
@@ -59,15 +60,16 @@ public class Client implements Runnable {
             e.printStackTrace();
         }
         isCounting.set(false);
-        stopLatch.countDown();
+        return null;
     }
 
     private void readResponse() throws IOException {
         for (int i = 0; i < iterations; i++) {
-            int id = StreamUtils.readData(input).getId();
+            int responseId = StreamUtils.readData(input).getId();
             //TODO check data
+            System.out.println("Client " + id + "recieved" + responseId);
             if (isCounting.get()) {
-                results.addResult(timers.get(id).time());
+                results.addResult(timers.get(responseId).time());
             }
             //TODO do smth else?
         }
@@ -87,8 +89,9 @@ public class Client implements Runnable {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                System.out.println("Client " + id + "sent" + i);
                 try {
-                    Thread.sleep(100); //TODO config
+                    Thread.sleep(10); //TODO config
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

@@ -10,6 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -36,11 +37,13 @@ public class BlockingServer implements Server {
     public void start() throws IOException {
         socket = new ServerSocket(228);
         startLatch.countDown();
+        System.out.println("Server countdown");
         try {
             startLatch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println("Server started");
         isWorking.set(true);
         serverSocketService.submit(() -> acceptClients(socket));
     }
@@ -53,8 +56,7 @@ public class BlockingServer implements Server {
                 clients.add(client);
                 client.process();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
     }
 
