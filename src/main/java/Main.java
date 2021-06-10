@@ -1,6 +1,7 @@
 import client.Client;
 import results.Results;
 import server.Server;
+import server.async.AsyncServer;
 import server.blocking.BlockingServer;
 
 import java.io.IOException;
@@ -11,16 +12,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main {
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
-        ExecutorService clientsPool = Executors.newFixedThreadPool(5);
-        int n = 5;
+        int n = 10;
+        ExecutorService clientsPool = Executors.newFixedThreadPool(n);
         CountDownLatch startLatch = new CountDownLatch(n + 1);
         AtomicBoolean isCounting = new AtomicBoolean(true);
         Results result = new Results();
         List<Future<Void>> futures = new LinkedList<>();
         for (int i = 0; i < n; i++) {
-            futures.add(clientsPool.submit(new Client(startLatch, isCounting, 100, 1000, result, i)));
+            futures.add(clientsPool.submit(new Client(startLatch, isCounting, 5, 10000, result, i)));
         }
-        Server server = new BlockingServer(startLatch, 2);
+           Server server = new BlockingServer(startLatch, 2);
+        //Server server = new AsyncServer(startLatch, 2);
         server.start();
         for (Future<Void> future : futures) {
             future.get();

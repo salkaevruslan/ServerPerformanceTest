@@ -9,6 +9,7 @@ import util.Timer;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,13 +44,13 @@ public class Client implements Callable<Void> {
     @Override
     public Void call() {
         startLatch.countDown();
-        System.out.println("Client " + id + "countdown" + startLatch.getCount());
+        // System.out.println("Client " + id + "countdown" + startLatch.getCount());
         try {
             startLatch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("Client " + id + "start");
+        // System.out.println("Client " + id + "start");
         try (Socket socket = new Socket("localhost", 228)) {
             input = new DataInputStream(socket.getInputStream());
             output = new DataOutputStream(socket.getOutputStream());
@@ -65,13 +66,12 @@ public class Client implements Callable<Void> {
 
     private void readResponse() throws IOException {
         for (int i = 0; i < iterations; i++) {
-            int responseId = StreamUtils.readData(input).getId();
+            DataArray data = StreamUtils.readData(input);
             //TODO check data
-            System.out.println("Client " + id + "recieved" + responseId);
             if (isCounting.get()) {
-                results.addResult(timers.get(responseId).time());
+                results.addResult(timers.get(data.getId()).time());
             }
-            //TODO do smth else?
+            // System.out.println("Response " + id + " t: " + t + " id: " + data.getId());
         }
     }
 
@@ -89,7 +89,7 @@ public class Client implements Callable<Void> {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println("Client " + id + "sent" + i);
+                // System.out.println("Request " + id + " id: " + i);
                 try {
                     Thread.sleep(10); //TODO config
                 } catch (InterruptedException e) {
