@@ -9,7 +9,6 @@ import util.Timer;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,6 +20,7 @@ public class Client implements Callable<Void> {
     private final AtomicBoolean isCounting;
     private final int iterations;
     private final ArrayList<Integer> values;
+    private final int timeBetweenRequests;
     private DataInputStream input;
     private DataOutputStream output;
     public int id;
@@ -30,6 +30,7 @@ public class Client implements Callable<Void> {
                   AtomicBoolean isCounting,
                   int iterations,
                   int dataSize,
+                  int timeBetweenRequests,
                   Results results,
                   int id
     ) {
@@ -37,6 +38,7 @@ public class Client implements Callable<Void> {
         this.isCounting = isCounting;
         this.iterations = iterations;
         this.results = results;
+        this.timeBetweenRequests = timeBetweenRequests;
         values = DataGenerator.gen(dataSize);
         this.id = id;
     }
@@ -51,7 +53,7 @@ public class Client implements Callable<Void> {
             e.printStackTrace();
         }
         // System.out.println("Client " + id + "start");
-        try (Socket socket = new Socket("localhost", 228)) {
+        try (Socket socket = new Socket("localhost", 228)) { //TODO config
             input = new DataInputStream(socket.getInputStream());
             output = new DataOutputStream(socket.getOutputStream());
             Thread senderThread = new Thread(new DataSender());
@@ -91,7 +93,7 @@ public class Client implements Callable<Void> {
                 }
                 // System.out.println("Request " + id + " id: " + i);
                 try {
-                    Thread.sleep(10); //TODO config
+                    Thread.sleep(timeBetweenRequests);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

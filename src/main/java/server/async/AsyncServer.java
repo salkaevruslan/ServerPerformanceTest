@@ -1,6 +1,8 @@
 package server.async;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import data.DataArray;
+import exception.ServerException;
 import server.Server;
 import util.BubbleSorter;
 import util.StreamUtils;
@@ -29,7 +31,7 @@ public class AsyncServer implements Server {
     }
 
     @Override
-    public void start() throws IOException {
+    public void start() throws ServerException {
         try {
             asynchronousServerSocketChannel = AsynchronousServerSocketChannel.open();
             asynchronousServerSocketChannel.bind(new InetSocketAddress(228));
@@ -42,17 +44,17 @@ public class AsyncServer implements Server {
             }
             asynchronousServerSocketChannel.accept(asynchronousServerSocketChannel, new AcceptHandler());
         } catch (IOException e) {
-            e.printStackTrace();
-            //TODO rethrow as server exception
+            throw new ServerException(e.getMessage(), e);
         }
     }
 
     @Override
-    public void shutdown() {
+    public void shutdown() throws ServerException {
         workers.shutdown();
         try {
             asynchronousServerSocketChannel.close();
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            throw new ServerException(e.getMessage(), e);
         }
     }
 
@@ -66,8 +68,7 @@ public class AsyncServer implements Server {
         }
 
         @Override
-        public void failed(Throwable ex, AsynchronousServerSocketChannel attachment) {
-            //TODO
+        public void failed(Throwable ex, AsynchronousServerSocketChannel assc) {
         }
     }
 
@@ -97,8 +98,8 @@ public class AsyncServer implements Server {
         }
 
         @Override
-        public void failed(Throwable exc, ClientData attachment) {
-            //TODO
+        public void failed(Throwable exc, ClientData client) {
+            client.shutdown();
         }
     }
 
@@ -115,8 +116,8 @@ public class AsyncServer implements Server {
             });
             client.dataBuffer.clear();
             client.isInfoRead.set(false);
-        } catch (IOException e) {
-            //TODO
+        } catch (InvalidProtocolBufferException ignored) {
+            //invalid protocol = no task
         }
     }
 
@@ -149,8 +150,8 @@ public class AsyncServer implements Server {
         }
 
         @Override
-        public void failed(Throwable exc, ClientData attachment) {
-            //TODO
+        public void failed(Throwable exc, ClientData client) {
+            client.shutdown();
         }
     }
 

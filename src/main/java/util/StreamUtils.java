@@ -1,5 +1,6 @@
 package util;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import data.DataArray;
 import data.DataArrayProto;
 
@@ -24,7 +25,7 @@ public class StreamUtils {
         outputStream.flush();
     }
 
-    public static DataArray readData(ByteBuffer buffer) throws IOException {
+    public static DataArray readData(ByteBuffer buffer) throws InvalidProtocolBufferException {
         DataArrayProto.DataArray response = DataArrayProto.DataArray.parseFrom(buffer);
         return dataArrayFromProto(response);
     }

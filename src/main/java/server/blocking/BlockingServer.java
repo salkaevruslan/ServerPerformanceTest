@@ -1,6 +1,7 @@
 package server.blocking;
 
 import data.DataArray;
+import exception.ServerException;
 import server.Server;
 import util.BubbleSorter;
 import util.StreamUtils;
@@ -29,18 +30,22 @@ public class BlockingServer implements Server {
         workers = Executors.newFixedThreadPool(poolSize);
     }
 
-    public void start() throws IOException {
-        socket = new ServerSocket(228);
-        startLatch.countDown();
-        // System.out.println("Server countdown");
+    public void start() throws ServerException {
         try {
-            startLatch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            socket = new ServerSocket(228);
+            startLatch.countDown();
+            // System.out.println("Server countdown");
+            try {
+                startLatch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // System.out.println("Server started");
+            isWorking.set(true);
+            serverSocketService.submit(() -> acceptClients(socket));
+        } catch (IOException e) {
+            throw new ServerException(e.getMessage(), e);
         }
-        // System.out.println("Server started");
-        isWorking.set(true);
-        serverSocketService.submit(() -> acceptClients(socket));
     }
 
     private void acceptClients(ServerSocket serverSocket) {
@@ -57,14 +62,15 @@ public class BlockingServer implements Server {
 
 
     @Override
-    public void shutdown() {
+    public void shutdown() throws ServerException {
         isWorking.set(false);
         serverSocketService.shutdown();
         workers.shutdown();
         clients.forEach(ClientData::shutdown);
         try {
             socket.close();
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            throw new ServerException(e.getMessage(), e);
         }
     }
 

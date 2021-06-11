@@ -1,8 +1,11 @@
 package server;
 
+import exception.ServerException;
+
 import java.io.IOException;
 
-public interface Server { //TODO nado?
-    void start() throws IOException;
-    void shutdown();
+public interface Server {
+    void start() throws ServerException;
+
+    void shutdown() throws ServerException;
 }
