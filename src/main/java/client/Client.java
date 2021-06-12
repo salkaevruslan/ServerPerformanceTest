@@ -49,13 +49,11 @@ public class Client implements Callable<Void> {
     @Override
     public Void call() {
         startLatch.countDown();
-        // System.out.println("Client " + id + "countdown" + startLatch.getCount());
         try {
             startLatch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // System.out.println("Client " + id + "start");
         try (Socket socket = new Socket("localhost", port)) {
             input = new DataInputStream(socket.getInputStream());
             output = new DataOutputStream(socket.getOutputStream());
@@ -74,7 +72,6 @@ public class Client implements Callable<Void> {
             if (isCounting.get()) {
                 results.addResult(timers.get(data.getId()).time());
             }
-            // System.out.println("Response " + id + " id: " + data.getId());
         }
     }
 
@@ -91,7 +88,6 @@ public class Client implements Callable<Void> {
                     StreamUtils.writeData(output, new DataArray(i, valuesAsArray));
                 } catch (IOException ignored) {
                 }
-                // System.out.println("Request " + id + " id: " + i);
                 try {
                     Thread.sleep(timeBetweenRequests);
                 } catch (InterruptedException e) {

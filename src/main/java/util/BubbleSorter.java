@@ -1,7 +1,5 @@
 package util;
 
-import java.util.ArrayList;
-
 public class BubbleSorter {
     public static void sort(int[] data) {
         int n = data.length;
