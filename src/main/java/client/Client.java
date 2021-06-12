@@ -89,7 +89,7 @@ public class Client implements Callable<Void> {
                 timer.start();
                 try {
                     StreamUtils.writeData(output, new DataArray(i, valuesAsArray));
-                } catch (IOException e) {
+                } catch (IOException ignored) {
                 }
                 // System.out.println("Request " + id + " id: " + i);
                 try {

@@ -64,7 +64,7 @@ public class Config {
         return serverType.createServer(startLatch);
     }
 
-    private enum Param {
+    public enum Param {
         DATA_ARRAY_SIZE,
         TIME_BETWEEN_REQUESTS,
         CLIENTS_NUMBER;
@@ -138,7 +138,7 @@ public class Config {
         );
     }
 
-    private static String getValue(String configString) {
+    public static String getValue(String configString) {
         int idx = configString.indexOf('=');
         if (idx == -1) {
             return "";
