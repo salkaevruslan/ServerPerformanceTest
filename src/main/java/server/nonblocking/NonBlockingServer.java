@@ -112,20 +112,12 @@ public class NonBlockingServer implements Server {
                     SocketChannel channel = (SocketChannel) key.channel();
                     ClientData client = (ClientData) key.attachment();
                     if (client.isInfoReadDone.get()) {
-                        int bytes = channel.read(client.dataBuffer);
-                        if (bytes < 0) {
-                            client.shutdown();
-                            key.cancel();
-                        }
+                        channel.read(client.dataBuffer);
                         if (!client.dataBuffer.hasRemaining()) {
                             processData(client);
                         }
                     } else {
-                        int bytes = channel.read(client.infoBuffer);
-                        if (bytes < 0) {
-                            client.shutdown();
-                            key.cancel();
-                        }
+                        channel.read(client.infoBuffer);
                         if (!client.infoBuffer.hasRemaining()) {
                             processInfo(client);
                         }
