@@ -29,7 +29,7 @@ public class BlockingServer implements Server {
     public BlockingServer(CountDownLatch startLatch, int poolSize, int port) {
         this.startLatch = startLatch;
         workers = Executors.newFixedThreadPool(poolSize);
-        this.port=port;
+        this.port = port;
     }
 
     public void start() throws ServerException {
@@ -96,10 +96,12 @@ public class BlockingServer implements Server {
                 try (Socket ignored = socket) {
                     while (isWorking.get() && socket.isConnected()) {
                         DataArray data = StreamUtils.readData(inputStream);
+                        // System.out.println("Server: " + id + " request id: " + data.getId() + " " + System.currentTimeMillis());
                         workers.submit(() -> {
                             BubbleSorter.sort(data.getValues());
                             responseWriter.submit(() -> {
                                 try {
+                                    // System.out.println("Server: " + id + " response id: " + data.getId() + " " + System.currentTimeMillis());
                                     StreamUtils.writeData(outputStream, data);
                                 } catch (IOException ignored1) {
                                 }

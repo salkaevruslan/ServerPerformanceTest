@@ -17,4 +17,8 @@ public class Results {
         }
         return sumTime.get() / totalNumber.get();
     }
+
+    public long getNumber() {
+        return totalNumber.get();
+    }
 }

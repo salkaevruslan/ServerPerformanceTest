@@ -43,7 +43,7 @@ public class Client implements Callable<Void> {
         this.timeBetweenRequests = timeBetweenRequests;
         values = DataGenerator.gen(dataSize);
         this.id = id;
-        this.port=port;
+        this.port = port;
     }
 
     @Override
@@ -62,8 +62,7 @@ public class Client implements Callable<Void> {
             Thread senderThread = new Thread(new DataSender());
             senderThread.start();
             readResponse();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
         isCounting.set(false);
         return null;
@@ -75,7 +74,7 @@ public class Client implements Callable<Void> {
             if (isCounting.get()) {
                 results.addResult(timers.get(data.getId()).time());
             }
-            // System.out.println("Response " + id + " t: " + t + " id: " + data.getId());
+            // System.out.println("Response " + id + " id: " + data.getId());
         }
     }
 
@@ -91,7 +90,6 @@ public class Client implements Callable<Void> {
                 try {
                     StreamUtils.writeData(output, new DataArray(i, valuesAsArray));
                 } catch (IOException e) {
-                    e.printStackTrace();
                 }
                 // System.out.println("Request " + id + " id: " + i);
                 try {

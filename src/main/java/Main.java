@@ -23,16 +23,16 @@ public class Main {
         List<Config.ClientsConfig> clientsConfigs = Config.getClientsConfigs();
         for (Config.ClientsConfig clientsConfig : clientsConfigs) {
             try {
-                long result = runTest(clientsConfig);
-                System.out.println(result);
+                Results result = runTest(clientsConfig);
+                System.out.println(clientsConfig.clientsNumber + " " + result.getAverage() + " " + result.getNumber());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public static long runTest(Config.ClientsConfig clientsConfig) throws ServerException, ExecutionException, InterruptedException {
-        ExecutorService clientsPool = Executors.newFixedThreadPool(clientsConfig.clientsNumber);
+    public static Results runTest(Config.ClientsConfig clientsConfig) throws ServerException, ExecutionException, InterruptedException {
+        ExecutorService clientsPool = Executors.newCachedThreadPool();//TODO
         CountDownLatch startLatch = new CountDownLatch(clientsConfig.clientsNumber + 1);
         AtomicBoolean isCounting = new AtomicBoolean(true);
         Results result = new Results();
@@ -57,6 +57,6 @@ public class Main {
         }
         clientsPool.shutdown();
         server.shutdown();
-        return result.getAverage();
+        return result;
     }
 }
