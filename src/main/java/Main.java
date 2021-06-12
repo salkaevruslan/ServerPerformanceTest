@@ -4,6 +4,7 @@ import exception.ServerException;
 import results.Results;
 import server.Server;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -12,7 +13,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Main {
 
     public static void main(String[] args) {
-        Config.parseConfig();
+        try {
+            Config.parseConfig();
+        } catch (IOException e) {
+            System.err.println("Cannot open file");
+            e.printStackTrace();
+            return;
+        }
         List<Config.ClientsConfig> clientsConfigs = Config.getClientsConfigs();
         for (Config.ClientsConfig clientsConfig : clientsConfigs) {
             try {
