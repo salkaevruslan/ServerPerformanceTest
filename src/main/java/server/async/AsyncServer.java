@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AsyncServer implements Server {
-    private final ExecutorService workers; //TODO to superclass
+    private final ExecutorService workers;
     private final CountDownLatch startLatch;
     private final int port;
     private AsynchronousServerSocketChannel asynchronousServerSocketChannel;
@@ -131,7 +131,7 @@ public class AsyncServer implements Server {
         client.isInfoRead.set(true);
     }
 
-    private class WriteHandler implements CompletionHandler<Integer, ClientData> {
+    private static class WriteHandler implements CompletionHandler<Integer, ClientData> {
 
         @Override
         public void completed(Integer bytes, ClientData client) {
@@ -143,9 +143,9 @@ public class AsyncServer implements Server {
                 client.asynchronousSocketChannel.write(client.responses.peek(), client, this);
             } else {
                 client.responses.remove();
-                if (client.responses.isEmpty()) {
-                    client.isWriting.set(false);
-                } else {
+                client.isWriting.set(false);
+                if (!client.responses.isEmpty() && client.isWriting.compareAndSet(false, true)) {
+                    client.isWriting.set(true);
                     client.asynchronousSocketChannel.write(client.responses.peek(), client, this);
                 }
             }
@@ -157,7 +157,7 @@ public class AsyncServer implements Server {
         }
     }
 
-    private class ClientData {
+    private static class ClientData {
         public final AsynchronousSocketChannel asynchronousSocketChannel;
         public ByteBuffer dataBuffer;
         public final ByteBuffer infoBuffer = ByteBuffer.allocate(Integer.BYTES);
