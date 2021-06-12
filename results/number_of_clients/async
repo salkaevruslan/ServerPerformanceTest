@@ -4,6 +4,7 @@ Dynamic param:CLIENTS_NUMBER
 Client iterations:50
 Data array size:5000
 Time between requests:50
+data:
 5 16
 10 21
 15 28
