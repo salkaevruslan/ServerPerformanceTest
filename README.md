@@ -10,7 +10,7 @@
 
 Время между запросами: 50
 
-plot.png![plot](https://user-images.githubusercontent.com/32035977/121784666-deabf180-cbbd-11eb-9d62-c77012e47362.png)
+![plot](https://user-images.githubusercontent.com/32035977/121784666-deabf180-cbbd-11eb-9d62-c77012e47362.png)
 
 ### Изменяемый параметр: размера передаваемого массива
 #### Прочие параметры:
@@ -22,7 +22,7 @@ plot.png![plot](https://user-images.githubusercontent.com/32035977/121784666-dea
 
 Время между запросами: 100
 
-plot.png![plot](https://user-images.githubusercontent.com/32035977/121784734-4b26f080-cbbe-11eb-8447-07acd25d9f07.png)
+![plot](https://user-images.githubusercontent.com/32035977/121784734-4b26f080-cbbe-11eb-8447-07acd25d9f07.png)
 
 ### Изменяемый параметр: время между запросами
 #### Прочие параметры:
@@ -34,5 +34,5 @@ plot.png![plot](https://user-images.githubusercontent.com/32035977/121784734-4b2
 
 Размер передаваемого массива: 3000
 
-plot.png![plot](https://user-images.githubusercontent.com/32035977/121784754-6f82cd00-cbbe-11eb-808e-be7e8ead2aa8.png)
+![plot](https://user-images.githubusercontent.com/32035977/121784754-6f82cd00-cbbe-11eb-808e-be7e8ead2aa8.png)
 
