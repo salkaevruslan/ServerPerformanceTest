@@ -1,0 +1,20 @@
+Server type:ASYNC
+Server pool size:5
+Dynamic param:TIME_BETWEEN_REQUESTS
+Client iterations:50
+Data array size:3000
+Clients number:50
+5 1053
+10 855
+15 791
+20 404
+25 515
+30 379
+35 270
+40 26
+45 33
+50 24
+55 20
+60 21
+65 18
+70 25

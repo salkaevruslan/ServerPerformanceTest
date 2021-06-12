@@ -1,0 +1,13 @@
+Server type:ASYNC
+Server pool size:5
+Dynamic param:DATA_ARRAY_SIZE
+Client iterations:20
+Clients number:25
+Time between requests:100
+1000 6
+2000 7
+3000 15
+4000 26
+5000 31
+6000 59
+7000 354

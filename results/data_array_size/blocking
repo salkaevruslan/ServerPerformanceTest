@@ -1,0 +1,13 @@
+Server type:BLOCKING
+Server pool size:5
+Dynamic param:DATA_ARRAY_SIZE
+Client iterations:20
+Clients number:25
+Time between requests:100
+1000 5
+2000 7
+3000 15
+4000 25
+5000 30
+6000 59
+7000 293

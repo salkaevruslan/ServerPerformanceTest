@@ -31,7 +31,7 @@ public class Main {
             System.out.println("Clients number:" + Config.clientsNumber);
         }
         if (Config.dynamicParam != Config.Param.TIME_BETWEEN_REQUESTS) {
-            System.out.println("Time between requests:" + Config.dataArraySize);
+            System.out.println("Time between requests:" + Config.timeBetweenRequests);
         }
         List<Config.ClientsConfig> clientsConfigs = Config.getClientsConfigs();
         for (Config.ClientsConfig clientsConfig : clientsConfigs) {

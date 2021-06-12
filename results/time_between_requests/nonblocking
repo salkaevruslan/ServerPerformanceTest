@@ -1,0 +1,20 @@
+Server type:NON_BLOCKING
+Server pool size:5
+Dynamic param:TIME_BETWEEN_REQUESTS
+Client iterations:50
+Data array size:3000
+Clients number:50
+5 1069
+10 864
+15 812
+20 450
+25 597
+30 474
+35 324
+40 35
+45 55
+50 12
+55 21
+60 26
+65 17
+70 21
