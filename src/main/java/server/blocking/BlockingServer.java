@@ -22,17 +22,19 @@ public class BlockingServer implements Server {
     private final ExecutorService serverSocketService = Executors.newSingleThreadExecutor();
     private final ConcurrentLinkedQueue<ClientData> clients = new ConcurrentLinkedQueue<>();
     private final CountDownLatch startLatch;
+    private final int port;
     private ServerSocket socket;
     private final AtomicBoolean isWorking = new AtomicBoolean();
 
-    public BlockingServer(CountDownLatch startLatch, int poolSize) {
+    public BlockingServer(CountDownLatch startLatch, int poolSize, int port) {
         this.startLatch = startLatch;
         workers = Executors.newFixedThreadPool(poolSize);
+        this.port=port;
     }
 
     public void start() throws ServerException {
         try {
-            socket = new ServerSocket(228);
+            socket = new ServerSocket(port);
             startLatch.countDown();
             // System.out.println("Server countdown");
             try {

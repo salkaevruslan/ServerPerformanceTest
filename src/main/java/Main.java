@@ -45,7 +45,8 @@ public class Main {
                     clientsConfig.dataArraySize,
                     clientsConfig.timeBetweenRequests,
                     result,
-                    i
+                    i,
+                    Config.serverPort
             )));
         }
         Server server = Config.createServer(startLatch);

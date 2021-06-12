@@ -23,18 +23,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AsyncServer implements Server {
     private final ExecutorService workers; //TODO to superclass
     private final CountDownLatch startLatch;
+    private final int port;
     private AsynchronousServerSocketChannel asynchronousServerSocketChannel;
 
-    public AsyncServer(CountDownLatch startLatch, int poolSize) {
+    public AsyncServer(CountDownLatch startLatch, int poolSize, int port) {
         this.startLatch = startLatch;
         workers = Executors.newFixedThreadPool(poolSize);
+        this.port = port;
     }
 
     @Override
     public void start() throws ServerException {
         try {
             asynchronousServerSocketChannel = AsynchronousServerSocketChannel.open();
-            asynchronousServerSocketChannel.bind(new InetSocketAddress(228));
+            asynchronousServerSocketChannel.bind(new InetSocketAddress(port));
             startLatch.countDown();
             // System.out.println("Server countdown");
             try {

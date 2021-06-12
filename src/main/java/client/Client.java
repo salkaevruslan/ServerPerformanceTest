@@ -21,6 +21,7 @@ public class Client implements Callable<Void> {
     private final int iterations;
     private final ArrayList<Integer> values;
     private final int timeBetweenRequests;
+    private final int port;
     private DataInputStream input;
     private DataOutputStream output;
     public int id;
@@ -32,7 +33,8 @@ public class Client implements Callable<Void> {
                   int dataSize,
                   int timeBetweenRequests,
                   Results results,
-                  int id
+                  int id,
+                  int port
     ) {
         this.startLatch = startLatch;
         this.isCounting = isCounting;
@@ -41,6 +43,7 @@ public class Client implements Callable<Void> {
         this.timeBetweenRequests = timeBetweenRequests;
         values = DataGenerator.gen(dataSize);
         this.id = id;
+        this.port=port;
     }
 
     @Override
@@ -53,7 +56,7 @@ public class Client implements Callable<Void> {
             e.printStackTrace();
         }
         // System.out.println("Client " + id + "start");
-        try (Socket socket = new Socket("localhost", 228)) { //TODO config
+        try (Socket socket = new Socket("localhost", port)) {
             input = new DataInputStream(socket.getInputStream());
             output = new DataOutputStream(socket.getOutputStream());
             Thread senderThread = new Thread(new DataSender());
@@ -69,7 +72,6 @@ public class Client implements Callable<Void> {
     private void readResponse() throws IOException {
         for (int i = 0; i < iterations; i++) {
             DataArray data = StreamUtils.readData(input);
-            //TODO check data
             if (isCounting.get()) {
                 results.addResult(timers.get(data.getId()).time());
             }

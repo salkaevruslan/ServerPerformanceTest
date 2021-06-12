@@ -22,18 +22,19 @@ public class Config {
     public static int lowerBound;
     public static int upperBound;
     public static int step;
+    public static int serverPort;
 
     private enum ServerType {
         BLOCKING {
             @Override
             public Server createServer(CountDownLatch startLatch) {
-                return new BlockingServer(startLatch, serverPoolSize);
+                return new BlockingServer(startLatch, serverPoolSize, serverPort);
             }
         },
         ASYNC {
             @Override
             public Server createServer(CountDownLatch startLatch) {
-                return new AsyncServer(startLatch, serverPoolSize);
+                return new AsyncServer(startLatch, serverPoolSize, serverPort);
             }
         },
         NON_BLOCKING {
@@ -124,6 +125,10 @@ public class Config {
                     }
                     if (line.startsWith("TIME_BETWEEN_REQUESTS")) {
                         timeBetweenRequests = Integer.parseInt(value);
+                        return;
+                    }
+                    if (line.startsWith("PORT")) {
+                        serverPort = Integer.parseInt(value);
                         return;
                     }
                     if (line.startsWith("METRIC_TYPE")) {
