@@ -7,7 +7,6 @@ import server.Server;
 import util.BubbleSorter;
 import util.StreamUtils;
 
-import javax.sound.sampled.FloatControl;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -163,13 +162,13 @@ public class AsyncServer implements Server {
     }
 
     private static class ClientData {
-        public final AsynchronousSocketChannel asynchronousSocketChannel;
-        public ByteBuffer dataBuffer;
-        public final ByteBuffer infoBuffer = ByteBuffer.allocate(Integer.BYTES);
-        public AtomicBoolean isInfoReadDone = new AtomicBoolean(false);
-        public Queue<ByteBuffer> responses = new ConcurrentLinkedQueue<>();
-        public boolean isWriting = false;
-        public Lock lock = new ReentrantLock();
+        private final AsynchronousSocketChannel asynchronousSocketChannel;
+        private ByteBuffer dataBuffer;
+        private final ByteBuffer infoBuffer = ByteBuffer.allocate(Integer.BYTES);
+        private final AtomicBoolean isInfoReadDone = new AtomicBoolean(false);
+        private final Queue<ByteBuffer> responses = new ConcurrentLinkedQueue<>();
+        private boolean isWriting = false;
+        private final Lock lock = new ReentrantLock();
 
         public ClientData(AsynchronousSocketChannel asynchronousSocketChannel) {
             this.asynchronousSocketChannel = asynchronousSocketChannel;

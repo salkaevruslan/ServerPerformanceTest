@@ -207,15 +207,14 @@ public class NonBlockingServer implements Server {
         }
     }
 
-    //TODO public/private everywhere
     private static class ClientData {
-        public final SocketChannel channel;
+        private final SocketChannel channel;
         private ByteBuffer dataBuffer;
         private final ByteBuffer infoBuffer = ByteBuffer.allocate(Integer.BYTES);
-        public AtomicBoolean isInfoReadDone = new AtomicBoolean(false);
-        public Queue<ByteBuffer> responses = new ConcurrentLinkedQueue<>();
-        public boolean isWriting = false;
-        public Lock lock = new ReentrantLock();
+        private final AtomicBoolean isInfoReadDone = new AtomicBoolean(false);
+        private final Queue<ByteBuffer> responses = new ConcurrentLinkedQueue<>();
+        private boolean isWriting = false;
+        private final Lock lock = new ReentrantLock();
 
         public ClientData(SocketChannel channel) {
             this.channel = channel;
