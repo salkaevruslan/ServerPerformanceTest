@@ -24,7 +24,7 @@ public class BlockingServer implements Server {
     private final CountDownLatch startLatch;
     private final int port;
     private ServerSocket socket;
-    private final AtomicBoolean isWorking = new AtomicBoolean();
+    private final AtomicBoolean isWorking = new AtomicBoolean(false);
 
     public BlockingServer(CountDownLatch startLatch, int poolSize, int port) {
         this.startLatch = startLatch;
@@ -32,19 +32,13 @@ public class BlockingServer implements Server {
         this.port = port;
     }
 
+    @Override
     public void start() throws ServerException {
         try {
             socket = new ServerSocket(port);
-            startLatch.countDown();
-            // System.out.println("Server countdown");
-            try {
-                startLatch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            // System.out.println("Server started");
             isWorking.set(true);
             serverSocketService.submit(() -> acceptClients(socket));
+            startLatch.countDown();
         } catch (IOException e) {
             throw new ServerException(e.getMessage(), e);
         }
@@ -78,8 +72,8 @@ public class BlockingServer implements Server {
 
     private class ClientData {
         private final Socket socket;
-        private final ExecutorService responseWriter = Executors.newSingleThreadExecutor();
-        private final ExecutorService requestReader = Executors.newSingleThreadExecutor();
+        private final ExecutorService responseThread = Executors.newSingleThreadExecutor();
+        private final ExecutorService requestThread = Executors.newSingleThreadExecutor();
 
         private final DataInputStream inputStream;
         private final DataOutputStream outputStream;
@@ -92,16 +86,14 @@ public class BlockingServer implements Server {
         }
 
         public void process() {
-            requestReader.submit(() -> {
+            requestThread.submit(() -> {
                 try (Socket ignored = socket) {
                     while (isWorking.get() && socket.isConnected()) {
                         DataArray data = StreamUtils.readData(inputStream);
-                        // System.out.println("Server: " + id + " request id: " + data.getId() + " " + System.currentTimeMillis());
                         workers.submit(() -> {
                             BubbleSorter.sort(data.getValues());
-                            responseWriter.submit(() -> {
+                            responseThread.submit(() -> {
                                 try {
-                                    // System.out.println("Server: " + id + " response id: " + data.getId() + " " + System.currentTimeMillis());
                                     StreamUtils.writeData(outputStream, data);
                                 } catch (IOException ignored1) {
                                 }
@@ -116,8 +108,8 @@ public class BlockingServer implements Server {
         }
 
         public void shutdown() {
-            responseWriter.shutdown();
-            requestReader.shutdown();
+            responseThread.shutdown();
+            requestThread.shutdown();
             try {
                 socket.close();
             } catch (IOException ignored) {

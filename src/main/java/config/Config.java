@@ -3,6 +3,7 @@ package config;
 import server.Server;
 import server.async.AsyncServer;
 import server.blocking.BlockingServer;
+import server.nonblocking.NonBlockingServer;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,7 +41,7 @@ public class Config {
         NON_BLOCKING {
             @Override
             public Server createServer(CountDownLatch startLatch) {
-                return null;
+                return new NonBlockingServer(startLatch, serverPoolSize, serverPort);
             }
         };
 

@@ -20,7 +20,7 @@ public class Main {
             e.printStackTrace();
             return;
         }
-        System.out.println("Server type: " + Config.serverType);
+        System.out.println("Server type:" + Config.serverType);
         System.out.println("Server pool size:" + Config.serverPoolSize);
         System.out.println("Dynamic param:" + Config.dynamicParam);
         System.out.println("Client iterations:" + Config.clientIterations);
@@ -28,7 +28,7 @@ public class Main {
             System.out.println("Data array size:" + Config.dataArraySize);
         }
         if (Config.dynamicParam != Config.Param.CLIENTS_NUMBER) {
-            System.out.println("Clients number:" + Config.dataArraySize);
+            System.out.println("Clients number:" + Config.clientsNumber);
         }
         if (Config.dynamicParam != Config.Param.TIME_BETWEEN_REQUESTS) {
             System.out.println("Time between requests:" + Config.dataArraySize);
@@ -37,7 +37,15 @@ public class Main {
         for (Config.ClientsConfig clientsConfig : clientsConfigs) {
             try {
                 Results result = runTest(clientsConfig);
-                System.out.println(clientsConfig.timeBetweenRequests + " " + result.getAverage());
+                if (Config.dynamicParam == Config.Param.DATA_ARRAY_SIZE) {
+                    System.out.println(clientsConfig.dataArraySize + " " + result.getAverage());
+                }
+                if (Config.dynamicParam == Config.Param.CLIENTS_NUMBER) {
+                    System.out.println(clientsConfig.clientsNumber + " " + result.getAverage());
+                }
+                if (Config.dynamicParam == Config.Param.TIME_BETWEEN_REQUESTS) {
+                    System.out.println(clientsConfig.timeBetweenRequests + " " + result.getAverage());
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -64,7 +72,6 @@ public class Main {
         }
         Server server = Config.createServer(startLatch);
         server.start();
-        //TODO handle serverException
         for (Future<Void> future : futures) {
             future.get();
         }

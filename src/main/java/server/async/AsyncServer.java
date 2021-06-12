@@ -7,6 +7,7 @@ import server.Server;
 import util.BubbleSorter;
 import util.StreamUtils;
 
+import javax.sound.sampled.FloatControl;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -19,6 +20,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class AsyncServer implements Server {
     private final ExecutorService workers;
@@ -37,14 +40,8 @@ public class AsyncServer implements Server {
         try {
             asynchronousServerSocketChannel = AsynchronousServerSocketChannel.open();
             asynchronousServerSocketChannel.bind(new InetSocketAddress(port));
-            startLatch.countDown();
-            // System.out.println("Server countdown");
-            try {
-                startLatch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             asynchronousServerSocketChannel.accept(asynchronousServerSocketChannel, new AcceptHandler());
+            startLatch.countDown();
         } catch (IOException e) {
             throw new ServerException(e.getMessage(), e);
         }
@@ -82,7 +79,7 @@ public class AsyncServer implements Server {
                 client.shutdown();
                 return;
             }
-            if (client.isInfoRead.get()) {
+            if (client.isInfoReadDone.get()) {
                 if (!client.dataBuffer.hasRemaining()) {
                     processData(client);
                     client.asynchronousSocketChannel.read(client.infoBuffer, client, this);
@@ -111,16 +108,21 @@ public class AsyncServer implements Server {
             DataArray data = StreamUtils.readData(client.dataBuffer);
             workers.submit(() -> {
                 BubbleSorter.sort(data.getValues());
+                client.lock.lock();
                 client.responses.add(StreamUtils.toByteBuffer(data));
-                if (client.isWriting.compareAndSet(false, true)) {
+                if (!client.isWriting) {
+                    client.isWriting = true;
+                    client.lock.unlock();
                     client.asynchronousSocketChannel.write(client.responses.peek(), client, new WriteHandler());
+                } else {
+                    client.lock.unlock();
                 }
             });
-            client.dataBuffer.clear();
-            client.isInfoRead.set(false);
         } catch (InvalidProtocolBufferException ignored) {
             //invalid protocol = no task
         }
+        client.dataBuffer.clear();
+        client.isInfoReadDone.set(false);
     }
 
     private void processInfo(ClientData client) {
@@ -128,7 +130,7 @@ public class AsyncServer implements Server {
         int size = client.infoBuffer.getInt();
         client.infoBuffer.clear();
         client.dataBuffer = ByteBuffer.allocate(size);
-        client.isInfoRead.set(true);
+        client.isInfoReadDone.set(true);
     }
 
     private static class WriteHandler implements CompletionHandler<Integer, ClientData> {
@@ -142,11 +144,14 @@ public class AsyncServer implements Server {
             if (!client.responses.isEmpty() && client.responses.peek().hasRemaining()) {
                 client.asynchronousSocketChannel.write(client.responses.peek(), client, this);
             } else {
+                client.lock.lock();
                 client.responses.remove();
-                client.isWriting.set(false);
-                if (!client.responses.isEmpty() && client.isWriting.compareAndSet(false, true)) {
-                    client.isWriting.set(true);
+                if (!client.responses.isEmpty()) {
+                    client.lock.unlock();
                     client.asynchronousSocketChannel.write(client.responses.peek(), client, this);
+                } else {
+                    client.isWriting = false;
+                    client.lock.unlock();
                 }
             }
         }
@@ -161,9 +166,10 @@ public class AsyncServer implements Server {
         public final AsynchronousSocketChannel asynchronousSocketChannel;
         public ByteBuffer dataBuffer;
         public final ByteBuffer infoBuffer = ByteBuffer.allocate(Integer.BYTES);
-        public AtomicBoolean isInfoRead = new AtomicBoolean(false);
+        public AtomicBoolean isInfoReadDone = new AtomicBoolean(false);
         public Queue<ByteBuffer> responses = new ConcurrentLinkedQueue<>();
-        public AtomicBoolean isWriting = new AtomicBoolean(false);
+        public boolean isWriting = false;
+        public Lock lock = new ReentrantLock();
 
         public ClientData(AsynchronousSocketChannel asynchronousSocketChannel) {
             this.asynchronousSocketChannel = asynchronousSocketChannel;
